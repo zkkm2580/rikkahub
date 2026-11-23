@@ -51,7 +51,7 @@ jobs:
           key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
 
       # 本 fork 没有配置 Firebase secrets，生成一个占位文件让 google-services 插件通过校验。
-      # 同时覆盖正式包名和 .debug 后缀包名（debug 变体会追加 applicationIdSuffix）。
+      # 覆盖正式包名（release 变体使用）。
       - name: Generate placeholder google-services.json
         run: |
           cat > app/google-services.json <<'EOF'
@@ -93,11 +93,26 @@ jobs:
           }
           EOF
 
-      # debug 变体无需签名密钥，适合 fork 仓库的自动编译验证
-      - name: Build debug APK
+      # 从 Secrets 恢复签名 keystore，并写入 local.properties 的签名配置
+      - name: Setup signing
+        env:
+          KEY_BASE64: ${{ secrets.KEY_BASE64 }}
+          SIGNING_PASSWORD: ${{ secrets.SIGNING_PASSWORD }}
+          SIGNING_ALIAS: ${{ secrets.SIGNING_ALIAS }}
+        run: |
+          echo "$KEY_BASE64" | base64 -d > app/release.jks
+          cat > local.properties <<EOF
+          storeFile=app/release.jks
+          storePassword=$SIGNING_PASSWORD
+          keyAlias=$SIGNING_ALIAS
+          keyPassword=$SIGNING_PASSWORD
+          EOF
+
+      # release 变体使用正式签名，构建可发布安装的 APK
+      - name: Build release APK
         run: |
           chmod +x gradlew
-          ./gradlew assembleGithubDebug --stacktrace
+          ./gradlew assembleGithubRelease --stacktrace
 
       # 发布到固定 tag "latest" 的发行版，每次编译覆盖旧 APK，用户始终下载到最新版。
       # prerelease 标记为预发布，与正式版本 tag（3.3.1）区分。
@@ -110,13 +125,11 @@ jobs:
           prerelease: true
           overwrite_files: true
           body: |
-            自动编译构建，每次推送代码后更新。
+            自动编译构建（release 签名版），每次推送代码后更新。
 
             - Commit: `${{ github.sha }}`
             - 构建时间: ${{ github.event.head_commit.timestamp }}
             - 分支: ${{ github.ref_name }}
-
-            > 这是未签名的 debug 版本，仅供测试。
           files: |
-            app/build/outputs/apk/github/debug/*.apk
+            app/build/outputs/apk/github/release/*.apk
           fail_on_unmatched_files: true
