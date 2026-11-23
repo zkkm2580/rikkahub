@@ -1,0 +1,52 @@
+name: Setup Signing Keys (one-time)
+
+# 一次性任务：生成 release keystore 并存入仓库 Secrets，完成后可删除此文件
+# 触发方式：Actions 页面手动运行，需输入 PAT_TOKEN（有 repo 权限的 GitHub Token）
+on:
+  workflow_dispatch:
+    inputs:
+      pat_token:
+        description: 'GitHub PAT Token（需要 repo 权限，用于写入 Secrets）'
+        required: true
+        type: string
+
+jobs:
+  setup:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Generate keystore
+        env:
+          PASSWORD: 'RikkaHub2026Signing'
+        run: |
+          keytool -genkeypair -v \
+            -keystore release.jks \
+            -alias rikkahub \
+            -keyalg RSA \
+            -keysize 2048 \
+            -validity 10000 \
+            -storepass "$PASSWORD" \
+            -keypass "$PASSWORD" \
+            -dname "CN=hg, OU=RikkaHub, O=hg, L=Unknown, ST=Unknown, C=CN"
+
+      - name: Encode keystore to base64
+        id: encode
+        run: |
+          BASE64=$(base64 -w 0 release.jks)
+          echo "::add-mask::$BASE64"
+          echo "keystore_b64=$BASE64" >> "$GITHUB_OUTPUT"
+
+      - name: Save secrets via gh CLI
+        env:
+          GH_TOKEN: ${{ inputs.pat_token }}
+          KEYSTORE_B64: ${{ steps.encode.outputs.keystore_b64 }}
+          REPO: ${{ github.repository }}
+        run: |
+          printf '%s' "$KEYSTORE_B64" | gh secret set KEY_BASE64 --repo "$REPO"
+          printf '%s' 'RikkaHub2026Signing' | gh secret set SIGNING_PASSWORD --repo "$REPO"
+          printf '%s' 'rikkahub' | gh secret set SIGNING_ALIAS --repo "$REPO"
+          echo "✅ Secrets 已写入：KEY_BASE64 / SIGNING_PASSWORD / SIGNING_ALIAS"
+
+      - name: Cleanup
+        if: always()
+        run: rm -f release.jks

@@ -15,7 +15,7 @@ plugins {
 }
 
 android {
-    namespace = "me.rerere.rikkahub"
+    namespace = "me.hg.rikkahub"
     compileSdk {
         version = release(37) {
             minorApiLevel = 2
@@ -23,7 +23,7 @@ android {
     }
 
     defaultConfig {
-        applicationId = "me.rerere.rikkahub"
+        applicationId = "me.hg.rikkahub"
         minSdk = 26
         targetSdk = 37
         versionCode = 198

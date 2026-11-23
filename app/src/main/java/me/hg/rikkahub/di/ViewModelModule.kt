@@ -1,0 +1,113 @@
+package me.hg.rikkahub.di
+
+import me.hg.rikkahub.ui.pages.assistant.AssistantVM
+import me.hg.rikkahub.ui.pages.assistant.detail.AssistantDetailVM
+import me.hg.rikkahub.ui.pages.backup.BackupVM
+import me.hg.rikkahub.ui.pages.chat.ChatDrawerVM
+import me.hg.rikkahub.ui.pages.chat.ChatVM
+import me.hg.rikkahub.ui.pages.debug.DebugVM
+import me.hg.rikkahub.ui.pages.extensions.PromptVM
+import me.hg.rikkahub.ui.pages.extensions.QuickMessagesVM
+import me.hg.rikkahub.ui.pages.extensions.skills.SkillDetailVM
+import me.hg.rikkahub.ui.pages.extensions.skills.SkillsVM
+import me.hg.rikkahub.ui.pages.extensions.workspace.WorkspaceDetailVM
+import me.hg.rikkahub.ui.pages.extensions.workspace.WorkspaceSshEditorVM
+import me.hg.rikkahub.ui.pages.extensions.workspace.WorkspaceVM
+import me.hg.rikkahub.ui.pages.favorite.FavoriteVM
+import me.hg.rikkahub.ui.pages.history.HistoryVM
+import me.hg.rikkahub.ui.pages.imggen.ImgGenVM
+import me.hg.rikkahub.ui.pages.mediacreation.MediaCreationSessionsVM
+import me.hg.rikkahub.ui.pages.mediacreation.MediaCreationVM
+import me.hg.rikkahub.ui.pages.memory.MemoryFileVM
+import me.hg.rikkahub.ui.pages.quickstart.QuickStartVM
+import me.hg.rikkahub.ui.pages.search.SearchVM
+import me.hg.rikkahub.ui.pages.setting.SettingVM
+import me.hg.rikkahub.ui.pages.share.handler.ShareHandlerVM
+import me.hg.rikkahub.ui.pages.stats.StatsVM
+import me.hg.rikkahub.ui.pages.translator.TranslatorVM
+import org.koin.core.module.dsl.viewModel
+import org.koin.core.module.dsl.viewModelOf
+import org.koin.dsl.module
+
+val viewModelModule = module {
+    viewModel<ChatVM> { params ->
+        ChatVM(
+            id = params.get(),
+            context = get(),
+            settingsStore = get(),
+            chatService = get(),
+            updateChecker = get(),
+            analytics = get(),
+            filesManager = get(),
+            favoriteRepository = get(),
+            backgroundShellManager = get(),
+        )
+    }
+    viewModelOf(::ChatDrawerVM)
+    viewModelOf(::SettingVM)
+    viewModelOf(::DebugVM)
+    viewModelOf(::HistoryVM)
+    viewModelOf(::AssistantVM)
+    viewModel<AssistantDetailVM> {
+        AssistantDetailVM(
+            id = it.get(),
+            settingsStore = get(),
+            memoryRepository = get(),
+            memoryConsolidationScheduler = get(),
+            filesManager = get(),
+            skillManager = get(),
+            workspaceRepository = get(),
+        )
+    }
+    viewModel<MemoryFileVM> {
+        MemoryFileVM(
+            memoryId = it[0],
+            path = it[1],
+            memoryRepository = get(),
+        )
+    }
+    viewModelOf(::TranslatorVM)
+    viewModel<ShareHandlerVM> {
+        ShareHandlerVM(
+            text = it.get(),
+            settingsStore = get(),
+        )
+    }
+    viewModelOf(::BackupVM)
+    viewModelOf(::QuickStartVM)
+    viewModelOf(::ImgGenVM)
+    viewModelOf(::MediaCreationSessionsVM)
+    viewModel<MediaCreationVM> {
+        MediaCreationVM(
+            id = it.get(),
+            context = get(),
+            settingsStore = get(),
+            repository = get(),
+            service = get(),
+            remoteFileStore = get(),
+            appScope = get(),
+        )
+    }
+    viewModelOf(::PromptVM)
+    viewModelOf(::QuickMessagesVM)
+    viewModelOf(::SkillsVM)
+    viewModelOf(::SkillDetailVM)
+    viewModelOf(::WorkspaceVM)
+    viewModel<WorkspaceDetailVM> {
+        WorkspaceDetailVM(
+            id = it.get(),
+            repository = get(),
+            terminalSessionManager = get(),
+            backgroundShellManager = get(),
+        )
+    }
+    viewModel<WorkspaceSshEditorVM> {
+        WorkspaceSshEditorVM(
+            id = it.getOrNull(),
+            repository = get(),
+        )
+    }
+    viewModelOf(::FavoriteVM)
+    viewModelOf(::SearchVM)
+    viewModelOf(::StatsVM)
+}

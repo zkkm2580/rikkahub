@@ -18,7 +18,7 @@
 
 🔗 [前往官網下載](https://rikka-ai.com/download)（推薦）
 
-🔗 [前往 Google Play 下載](https://play.google.com/store/apps/details?id=me.rerere.rikkahub)
+🔗 [前往 Google Play 下載](https://play.google.com/store/apps/details?id=me.hg.rikkahub)
 
 > [!WARNING]
 > RikkaHub 存在許多 fork 版本，fork 版本出現問題與 RikkaHub 無關，請謹慎使用 fork 版本，避免隱私洩露或者過度索要權限問題。
